@@ -6,7 +6,7 @@ authors = [
     { name = "jsture", email = "jsmadsen@sund.ku.dk" }
 ]
 dependencies = [
-    "numpy>=2.1.3",
+    "numpy>=1.17",
     "torch>=2.2.0",
     "pandas>=2.2.3",
     "tqdm>=4.66.6",
