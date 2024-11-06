@@ -90,8 +90,6 @@ scipy==1.14.1
     # via sentence-transformers
 sentence-transformers==3.2.1
     # via fastopic-no-topmost
-setuptools==75.3.0
-    # via torch
 six==1.16.0
     # via python-dateutil
 sympy==1.13.1
@@ -102,7 +100,7 @@ threadpoolctl==3.5.0
     # via scikit-learn
 tokenizers==0.20.3
     # via transformers
-torch==2.5.1
+torch==2.2.0
     # via fastopic-no-topmost
     # via sentence-transformers
 tqdm==4.66.6

@@ -1,3 +1,4 @@
+# pylint: disable=assignment-from-no-return, assignment-from-none, argument-type assignment-type
 import numpy as np
 import itertools
 
@@ -19,10 +20,10 @@ def wrap_topic_idx(
 
     if top_n is None and topic_idx is None:
         top_n = 5
-        topic_idx = np.argsort(topic_weights)[: -(top_n + 1) : -1]  # type: ignore
+        topic_idx = np.argsort(topic_weights)[: -(top_n + 1) : -1]
     elif top_n is not None:
         assert (top_n > 0) and (topic_idx is None)
-        topic_idx = np.argsort(topic_weights)[: -(top_n + 1) : -1]  # type: ignore
+        topic_idx = np.argsort(topic_weights)[: -(top_n + 1) : -1]
 
     assert topic_idx is not None
 
