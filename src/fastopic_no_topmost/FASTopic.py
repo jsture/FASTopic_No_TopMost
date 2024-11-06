@@ -14,39 +14,25 @@ from . import _plot
 from ._fastopic import fastopic
 from ._utils import Logger, check_fitted, DocEmbedModel
 
-from typing import Any
+from typing import Union
 
 
 logger = Logger("WARNING")
-
-
-class HackyModel(DocEmbedModel):
-    def __init__(self, embeddings):
-        self.embeddings = embeddings
-
-    def encode(
-        self,
-        docs: list[str],
-        show_progress_bar: bool = False,
-        normalize_embeddings: bool = False,
-    ):
-        ...
-        return self.embeddings
 
 
 class FASTopic:
     def __init__(
         self,
         num_topics: int,
-        doc_embed_model: str | DocEmbedModel = "all-MiniLM-L6-v2",
         preprocessing: Preprocessing | None = None,
+        doc_embed_model: Union[str, callable] = "all-MiniLM-L6-v2",
         num_top_words: int = 15,
         DT_alpha: float = 3.0,
         TW_alpha: float = 2.0,
         theta_temp: float = 1.0,
         epochs: int = 200,
         learning_rate: float = 0.002,
-        device: str | None = "mps",
+        device: str | None = None,
         normalize_embeddings: bool = False,
         save_memory: bool = False,
         batch_size: int | None = None,
@@ -93,7 +79,6 @@ class FASTopic:
 
         self.preprocessing = preprocessing
         self.doc_embed_model = doc_embed_model
-        self.doc_embedder = self.doc_embed_model  # DocEmbedModel
         self.vocab = None
         self.doc_embedder = None
         self.train_doc_embeddings = None
@@ -134,6 +119,10 @@ class FASTopic:
             self.batch_size = data_size
 
         dataset_device = "cpu" if self.save_memory else self.device
+
+        self.doc_embedder = DocEmbedModel(
+            self.doc_embed_model, self.normalize_embeddings, self.device
+        )
 
         dataset = RawDataset(
             docs,
@@ -192,16 +181,12 @@ class FASTopic:
         self.beta = self.get_beta()
         self.top_words = self.get_top_words(self.num_top_words)
         self.train_theta = self.transform(
-            docs, doc_embeddings=self.train_doc_embeddings
+            self, doc_embeddings=self.train_doc_embeddings
         )
 
         return self.top_words, self.train_theta
 
-    def transform(
-        self,
-        docs: list[str] | None = None,
-        doc_embeddings: np.ndarray | torch.Tensor | None = None,
-    ):
+    def transform(self, docs: list[str] = None, doc_embeddings: np.ndarray = None):
         if docs is None and doc_embeddings is None:
             raise ValueError("Must set either docs or doc_embeddings.")
 
@@ -209,12 +194,7 @@ class FASTopic:
             raise ValueError("Must set doc embeddings.")
 
         if doc_embeddings is None:
-            assert docs is not None and isinstance(self.doc_embedder, DocEmbedModel)
             doc_embeddings = torch.as_tensor(self.doc_embedder.encode(docs))
-            if not self.save_memory:
-                doc_embeddings = doc_embeddings.to(self.device)
-        else:
-            doc_embeddings = torch.as_tensor(doc_embeddings)
             if not self.save_memory:
                 doc_embeddings = doc_embeddings.to(self.device)
 
@@ -273,8 +253,8 @@ class FASTopic:
         """
         check_fitted(self)
 
-        path = str(Path(path))
-        parent_dir = Path(path).parent
+        save_path = Path(path)
+        parent_dir = save_path.parent
         if not parent_dir.exists():
             parent_dir.mkdir(parents=True, exist_ok=True)
 
@@ -284,7 +264,7 @@ class FASTopic:
                 instance_dict[key] = value
 
         state = {"instance_dict": instance_dict}
-        torch.save(state, str(path))
+        torch.save(state, save_path)
 
     @classmethod
     def from_pretrained(cls, path: str, device: str | None = None):
@@ -331,7 +311,7 @@ class FASTopic:
 
         return tuple(zip(words, scores))
 
-    def get_topic_weights(self) -> Any:
+    def get_topic_weights(self):
         check_fitted(self)
 
         topic_weights = self.transp_DT.sum(0)

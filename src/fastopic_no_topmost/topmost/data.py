@@ -15,9 +15,8 @@ class RawDataset:
         as_tensor=True,
         contextual_embed=False,
         pretrained_WE=True,
-        doc_embed_model: str | DocEmbedModel | None = "all-MiniLM-L6-v2",
+        doc_embed_model="all-MiniLM-L6-v2",
         embed_model_device=None,
-        normalize_embeddings=False,
         verbose=False,
     ):
         if preprocessing is None:
@@ -36,10 +35,7 @@ class RawDataset:
 
             if isinstance(doc_embed_model, str):
                 self.doc_embedder = DocEmbedModel(
-                    doc_embed_model,
-                    normalize_embeddings,
-                    embed_model_device,
-                    verbose=verbose,
+                    doc_embed_model, embed_model_device, verbose=verbose
                 )
             else:
                 self.doc_embedder = doc_embed_model
@@ -54,9 +50,6 @@ class RawDataset:
                 )
 
             self.train_data = torch.from_numpy(self.train_data).float().to(device)
-            from torch.utils.data import TensorDataset
-
-            self.train_dataset = TensorDataset(self.train_data)
             self.train_dataloader = DataLoader(
-                self.train_dataset, batch_size=batch_size, shuffle=True
+                self.train_data, batch_size=batch_size, shuffle=True
             )
