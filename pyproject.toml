@@ -6,7 +6,7 @@ authors = [
     { name = "jsture", email = "jsmadsen@sund.ku.dk" }
 ]
 dependencies = [
-    "numpy>=1.17",
+    "numpy<2",
     "torch>=2.2.0",
     "pandas>=2.2.3",
     "tqdm>=4.66.6",
@@ -15,6 +15,7 @@ dependencies = [
     "sentence-transformers>=3.2.1",
     "pre-commit>=4.0.1",
     "plotly>=5.24.1",
+    "pytest>=8.3.3",
 ]
 readme = "README.md"
 requires-python = ">= 3.8"
