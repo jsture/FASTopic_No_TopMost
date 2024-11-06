@@ -7,12 +7,13 @@ from scipy.cluster import hierarchy as sch
 import plotly.figure_factory as ff
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+from fastopic_no_topmost import FASTopic
 
 from typing import Callable, List, Union
 
 
 def wrap_topic_idx(
-    topic_model, top_n: int | None = None, topic_idx: List[int] | None = None
+    topic_model: FASTopic, top_n: int | None = None, topic_idx: list[int] | None = None
 ) -> list[int]:
     topic_weights = topic_model.get_topic_weights()
 
