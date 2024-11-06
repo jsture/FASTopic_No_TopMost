@@ -14,15 +14,17 @@ from typing import Callable, List, Union
 
 def wrap_topic_idx(
     topic_model: FASTopic, top_n: int | None = None, topic_idx: list[int] | None = None
-) -> list[int]:
+) -> list[int] | np.ndarray:
     topic_weights = topic_model.get_topic_weights()
 
     if top_n is None and topic_idx is None:
         top_n = 5
-        topic_idx = np.argsort(topic_weights)[: -(top_n + 1) : -1]
+        topic_idx = np.argsort(topic_weights)[: -(top_n + 1) : -1]  # type: ignore
     elif top_n is not None:
         assert (top_n > 0) and (topic_idx is None)
-        topic_idx = np.argsort(topic_weights)[: -(top_n + 1) : -1]
+        topic_idx = np.argsort(topic_weights)[: -(top_n + 1) : -1]  # type: ignore
+
+    assert topic_idx is not None
 
     return topic_idx
 
@@ -232,9 +234,9 @@ def visualize_hierarchy(
     width: int = 1000,
     height: int = 1000,
     linkage_function: Callable | None = None,
-    distance_function: Callable = None,
+    distance_function: Callable | None = None,
     n_label_words: int = 5,
-    color_threshold: int = None,
+    color_threshold: int | None = None,
 ):
     topic_embeddings = topic_model.topic_embeddings
 
