@@ -14,13 +14,13 @@ from . import _plot
 from ._fastopic import fastopic
 from ._utils import Logger, check_fitted, DocEmbedModel
 
-from typing import Callable, Any
+from typing import Any
 
 
 logger = Logger("WARNING")
 
 
-class HackyModel:
+class HackyModel(DocEmbedModel):
     def __init__(self, embeddings):
         self.embeddings = embeddings
 
@@ -38,7 +38,7 @@ class FASTopic:
     def __init__(
         self,
         num_topics: int,
-        doc_embed_model: str | Callable = "all-MiniLM-L6-v2",
+        doc_embed_model: str | DocEmbedModel = "all-MiniLM-L6-v2",
         preprocessing: Preprocessing | None = None,
         num_top_words: int = 15,
         DT_alpha: float = 3.0,
@@ -93,7 +93,7 @@ class FASTopic:
 
         self.preprocessing = preprocessing
         self.doc_embed_model = doc_embed_model
-        self.doc_embedder = self.doc_embed_model
+        self.doc_embedder = self.doc_embed_model  # DocEmbedModel
         self.vocab = None
         self.doc_embedder = None
         self.train_doc_embeddings = None
@@ -192,13 +192,15 @@ class FASTopic:
         self.beta = self.get_beta()
         self.top_words = self.get_top_words(self.num_top_words)
         self.train_theta = self.transform(
-            self, doc_embeddings=self.train_doc_embeddings
+            docs, doc_embeddings=self.train_doc_embeddings
         )
 
         return self.top_words, self.train_theta
 
     def transform(
-        self, docs: list[str] | None = None, doc_embeddings: np.ndarray | None = None
+        self,
+        docs: list[str] | None = None,
+        doc_embeddings: np.ndarray | torch.Tensor | None = None,
     ):
         if docs is None and doc_embeddings is None:
             raise ValueError("Must set either docs or doc_embeddings.")
@@ -207,7 +209,12 @@ class FASTopic:
             raise ValueError("Must set doc embeddings.")
 
         if doc_embeddings is None:
+            assert docs is not None and isinstance(self.doc_embedder, DocEmbedModel)
             doc_embeddings = torch.as_tensor(self.doc_embedder.encode(docs))
+            if not self.save_memory:
+                doc_embeddings = doc_embeddings.to(self.device)
+        else:
+            doc_embeddings = torch.as_tensor(doc_embeddings)
             if not self.save_memory:
                 doc_embeddings = doc_embeddings.to(self.device)
 
